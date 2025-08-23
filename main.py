@@ -6,6 +6,7 @@ from collections import defaultdict
 LEAGUES = {
     "epl": "Premier League",
     "liga": "La Liga",
+    "la-liga": "La Liga",
     "bundesliga": "Bundesliga",
     "ligue-1": "Ligue 1",
 }
