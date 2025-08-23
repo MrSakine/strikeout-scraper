@@ -20,7 +20,8 @@ LEAGUES = {
     "serie-a": "Serie A",
     "argentina-primera": "Argentina Primera",
     "turkey-super-lig": "Turkey Super Lig",
-    "brasil-serie-a": "Brazil Serie A"
+    "brasil-serie-a": "Brazil Serie A",
+    "usa-open-cup": "USA OPEN CUP",
 }
 
 URL = "https://strikeout.im/soccer"
