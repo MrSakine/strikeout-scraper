@@ -10,6 +10,7 @@ LEAGUES = {
     "bundesliga": "Bundesliga",
     "ligue-1": "Ligue 1",
     "russia-premier-league": "Premier League Russian",
+    "portugal-primera-liga": "Portugal liga",
     "portugal-segunda-liga": "Portugal liga",
     "south-africa-psl": "South Africa PSL",
     "spl": "Scottish Premiership",
