@@ -9,6 +9,17 @@ LEAGUES = {
     "la-liga": "La Liga",
     "bundesliga": "Bundesliga",
     "ligue-1": "Ligue 1",
+    "russia-premier-league": "Premier League Russian",
+    "portugal-segunda-liga": "Portugal liga",
+    "south-africa-psl": "South Africa PSL",
+    "spl": "Scottish Premiership",
+    "africa-cup-of-nations": "CAN",
+    "eredivisie": "Eredivisie",
+    "austria-bundesliga": "Austria Bundesliga",
+    "serie-a": "Serie A",
+    "argentina-primera": "Argentina Primera",
+    "turkey-super-lig": "Turkey Super Lig",
+    "brasil-serie-a": "Brazil Serie A"
 }
 
 URL = "https://strikeout.im/soccer"
