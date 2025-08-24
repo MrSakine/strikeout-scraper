@@ -4,7 +4,7 @@ from datetime import datetime
 from collections import defaultdict
 
 SPORTS_MAP = {
-    "football": {
+    "soccer": {
         "epl": "Premier League",
         "liga": "La Liga",
         "la-liga": "La Liga",
@@ -32,7 +32,7 @@ SPORTS_MAP = {
     }
 }
 
-SPORTS = ["football", "basketball"]
+SPORTS = ["soccer", "basketball"]
 
 
 def fetch_live_matches(sport="football"):
@@ -40,7 +40,7 @@ def fetch_live_matches(sport="football"):
     resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-    print(soup.prettify())
+    # print(soup.prettify())
 
     today = datetime.now().strftime("%Y-%m-%d")
     now = datetime.now()
