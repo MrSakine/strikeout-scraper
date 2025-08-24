@@ -3,32 +3,41 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from collections import defaultdict
 
-LEAGUES = {
-    "epl": "Premier League",
-    "liga": "La Liga",
-    "la-liga": "La Liga",
-    "bundesliga": "Bundesliga",
-    "ligue-1": "Ligue 1",
-    "russia-premier-league": "Premier League Russian",
-    "portugal-primera-liga": "Portugal liga",
-    "portugal-segunda-liga": "Portugal liga",
-    "south-africa-psl": "South Africa PSL",
-    "spl": "Scottish Premiership",
-    "africa-cup-of-nations": "CAN",
-    "eredivisie": "Eredivisie",
-    "austria-bundesliga": "Austria Bundesliga",
-    "serie-a": "Serie A",
-    "argentina-primera": "Argentina Primera",
-    "turkey-super-lig": "Turkey Super Lig",
-    "brasil-serie-a": "Brazil Serie A",
-    "usa-open-cup": "USA OPEN CUP",
+SPORTS_MAP = {
+    "football": {
+        "epl": "Premier League",
+        "liga": "La Liga",
+        "la-liga": "La Liga",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "russia-premier-league": "Premier League Russian",
+        "portugal-primera-liga": "Portugal liga",
+        "portugal-segunda-liga": "Portugal liga",
+        "south-africa-psl": "South Africa PSL",
+        "spl": "Scottish Premiership",
+        "africa-cup-of-nations": "CAN",
+        "eredivisie": "Eredivisie",
+        "austria-bundesliga": "Austria Bundesliga",
+        "serie-a": "Serie A",
+        "argentina-primera": "Argentina Primera",
+        "turkey-super-lig": "Turkey Super Lig",
+        "brasil-serie-a": "Brazil Serie A",
+        "usa-open-cup": "USA OPEN CUP",
+    },
+    "basketball": {
+        "nba": "NBA",
+        "wnba": "WNBA",
+        "africa-bal": "Basketball Africa League (BAL)",
+        "fiba": "FIBA",
+    }
 }
 
-URL = "https://strikeout.im/soccer"
+SPORTS = ["football", "basketball"]
 
 
-def fetch_live_matches():
-    resp = requests.get(URL, headers={"User-Agent": "Mozilla/5.0"})
+def fetch_live_matches(sport="football"):
+    url = f"https://strikeout.im/{sport}"
+    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
     print(soup.prettify())
@@ -43,7 +52,7 @@ def fetch_live_matches():
 
         # detect league
         league = None
-        for key, name in LEAGUES.items():
+        for key, name in SPORTS_MAP[sport].items():
             if f"/{key}/" in href:
                 league = name
                 break
@@ -90,11 +99,12 @@ def fetch_live_matches():
 
 
 if __name__ == "__main__":
-    date, matches_by_league = fetch_live_matches()
-    print(f"Live matches for {date}: {matches_by_league.values()}")
-    for league, games in matches_by_league.items():
-        print(f"{date} - {league}")
-        for match in games:
-            print(f"{match['hour']} {match['teams']}")
-            print(match['link'], end="\n\n")
-        print()
+    for sport in SPORTS:
+        date, matches_by_league = fetch_live_matches(sport=sport)
+        print(f"Live matches for {date}: {matches_by_league.values()}")
+        for league, games in matches_by_league.items():
+            print(f"{date} - {league}")
+            for match in games:
+                print(f"{match['hour']} {match['teams']}")
+                print(match['link'], end="\n\n")
+            print()
