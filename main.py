@@ -24,6 +24,7 @@ SPORTS_MAP = {
         "brasil-serie-a": "Brazil Serie A",
         "usa-open-cup": "USA OPEN CUP",
         "champions-league": "Champions League",
+        "carabao-cup": "Carabao Cup",
     },
     "basketball": {
         "nba": "NBA",
