@@ -25,6 +25,7 @@ SPORTS_MAP = {
         "usa-open-cup": "USA OPEN CUP",
         "champions-league": "Champions League",
         "carabao-cup": "Carabao Cup",
+        "dfb-pokal": "DFB Pokal",
     },
     "basketball": {
         "nba": "NBA",
