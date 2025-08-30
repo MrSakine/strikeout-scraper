@@ -1,7 +1,17 @@
 import requests
+import logging
 from bs4 import BeautifulSoup
 from datetime import datetime
 from collections import defaultdict
+from fake_useragent import UserAgent
+
+logger = logging.getLogger(__name__)
+log_format = (
+    "[%(name)s-%(levelname)s] "
+    "%(asctime)s - %(message)s"
+)
+
+logging.basicConfig(level=logging.INFO, format=log_format)
 
 SPORTS_MAP = {
     "soccer": {
@@ -37,7 +47,14 @@ SPORTS = ["soccer", "basketball"]
 
 def fetch_live_matches(sport="football"):
     url = f"https://strikeout.im/{sport}"
-    resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    headers = {
+        "User-Agent": UserAgent().random
+    }
+
+    logger.info("Fetching live matches from %s", url)
+    logger.info("Using headers: %s", headers)
+
+    resp = requests.get(url, headers=headers)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
     # print(soup.prettify())
@@ -76,8 +93,8 @@ def fetch_live_matches(sport="football"):
         else:
             hour = "??:??"
 
-        print("Match title: %s", title)
-        print("Match league: %s", league)
+        logger.info("Match title: %s", title)
+        logger.info("Match league: %s", league)
 
         # extract time
         time_span = a.find("span", {"content": True})
@@ -85,7 +102,7 @@ def fetch_live_matches(sport="football"):
 
         link = "https://strikeout.im" + href if href else "pas encore de lien"
 
-        print("Appending to results...")
+        logger.info("Appending to results...")
         results[league].append({
             "date": today,
             "hour": hour,
@@ -93,7 +110,7 @@ def fetch_live_matches(sport="football"):
             "link": link,
         })
 
-    print("All league results: %s", results.items())
+    logger.info("All league results: %s", results.items())
 
     return today, results
 
