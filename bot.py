@@ -1,8 +1,8 @@
 import logging
 import json
 import traceback
-from main import fetch_live_matches, SPORTS_MAP
-from pyrogram import Client, filters
+from main import fetch_live_matches, load_proxies, SPORTS_MAP
+from pyrogram import Client, filters, enums
 from uuid import uuid4
 from datetime import datetime
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineQuery, Message
@@ -34,6 +34,13 @@ SPORT_ICONS = {
     "basketball": "🏀",
 }
 
+ADBLOCK_NOTE = (
+    "\n⚠️ Consider using an adblocker for a better experience:\n"
+    "- Brave Browser: 🔗 https://brave.com/\n"
+    "- AdBlock for Chrome: 🔗 https://chrome.google.com/webstore/detail/adblock-%E2%80%94-block-ads-acros/"
+    "gighmmpiobklfepjocnamgkkbiglidom?hl=en-US&utm_source=ext_sidebar"
+)
+
 
 def get_cached_matches():
     """Return cached matches, fetch if new day or cache empty"""
@@ -41,8 +48,11 @@ def get_cached_matches():
     if CACHE["date"] != today:
         logger.info("Cache is outdated or empty, fetching new matches...")
         CACHE["data"] = {}
+        logger.info("Loading proxies...")
+        proxies = load_proxies("socks5")
         for sport in SPORTS_MAP:
-            _, matches_by_league = fetch_live_matches(sport)
+            _, matches_by_league = fetch_live_matches(
+                sport, proxies_list=proxies)
             CACHE["data"][sport] = matches_by_league
         CACHE["date"] = today
     else:
@@ -98,6 +108,7 @@ async def inline_handler(client: Client, query: InlineQuery):
                                     )
                                 )
                             )
+                        results.append(ADBLOCK_NOTE)
 
         if not found:
             results.append(
@@ -124,7 +135,7 @@ async def matches_handler(client: Client, message: Message):
     try:
         query = " ".join(message.command[1:]).lower().strip()
         if not query:
-            await message.reply_text("⚠️ Usage: `/matches <league name>`", quote=True)
+            await message.reply_text("⚠️ Usage: `/matches <league name>`", quote=True, parse_mode=enums.ParseMode.MARKDOWN)
             return
 
         status_msg = await message.reply_text(f"🔍 Searching live matches for {query}...")
@@ -146,13 +157,17 @@ async def matches_handler(client: Client, message: Message):
                             text_lines.append(
                                 f"⏰ {match['hour']} - {icon} {match['teams']}\n🔗 {match['link']}"
                             )
+                        text_lines.append(ADBLOCK_NOTE)
                         await status_msg.edit_text("\n\n".join(text_lines))
         if not found:
             await status_msg.edit_text("❌ League not found")
     except Exception as e:
         logger.error("Error occurred while processing /matches command: %s", e)
         traceback.print_exc()
-        await status_msg.edit_text("❌ An error occurred while processing your request.")
+        if status_msg:
+            await status_msg.edit_text("❌ An error occurred while processing your request.")
+        else:
+            await message.reply_text("❌ An error occurred while processing your request.")
 
 
 @bot.on_message(filters.command("refresh"))
@@ -207,18 +222,47 @@ async def help_handler(client: Client, message: Message):
         commands_list.append("  • /refresh (admin only) → Refresh cache")
 
         help_text = (
-            "📖 *How to use this bot*\n\n"
-            "👉 *Inline search*:\n"
+            "📖 **How to use this bot**\n\n"
+            "👉 **Inline search**:\n"
             "Type `@YourBotName premier league` in any chat to search live matches.\n\n"
-            "👉 *Commands*:\n"
+            "👉 **Commands**:\n"
             + "\n".join(commands_list)
+            + "\n\nℹ️ **About the bot**: /about\n"
+            + "✉️ **Contact the bot owner**: /contact\n"
         )
 
-        await message.reply_text(help_text, disable_web_page_preview=True)
+        await message.reply_text(help_text, disable_web_page_preview=True, parse_mode=enums.ParseMode.MARKDOWN)
     except Exception as e:
         logger.error("Error occurred while processing /help command: %s", e)
         traceback.print_exc()
         await message.reply_text("❌ An error occurred while processing your request.")
+
+
+@bot.on_message(filters.command("about"))
+async def about_handler(client: Client, message: Message) -> None:
+    """
+    Handle /about command: show info about the bot.
+    """
+    text = (
+        "🤖 **Strikeout Live Bot**\n\n"
+        "This bot provides live sports matches from Strikeout.im.\n"
+        "Supports soccer and basketball leagues.\n"
+        "Matches are cached daily to improve speed.\n\n"
+        "Use /help to see all commands."
+    )
+    await message.reply_text(text, disable_web_page_preview=True, parse_mode=enums.ParseMode.MARKDOWN)
+
+
+@bot.on_message(filters.command("contact"))
+async def contact_handler(client: Client, message: Message) -> None:
+    """
+    Handle /contact command: show owner's Telegram contact.
+    """
+    text = (
+        "📬 **Contact the bot owner:**\n"
+        "Telegram: [@Fly_3r](https://t.me/Fly_3r)"
+    )
+    await message.reply_text(text, disable_web_page_preview=True, parse_mode=enums.ParseMode.MARKDOWN)
 
 
 def register_league_commands():
@@ -240,7 +284,6 @@ def register_league_commands():
             ) -> None:
                 try:
                     """Handle individual league command using cached matches."""
-                    logger.info("Command received: /%s", command)
                     status_msg = await message.reply_text(f"🔍 Searching live matches for {league_name}...")
                     matches_data = get_cached_matches()  # get cached matches
                     matches_by_league = matches_data.get(sport, {})
@@ -254,6 +297,7 @@ def register_league_commands():
                         text_lines.append(
                             f"⏰ {match['hour']} - {icon} {match['teams']}\n🔗 {match['link']}"
                         )
+                    text_lines.append(ADBLOCK_NOTE)
                     await status_msg.edit_text("\n\n".join(text_lines))
                 except Exception as e:
                     logger.error(

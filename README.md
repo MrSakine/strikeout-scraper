@@ -93,6 +93,10 @@ flowchart TD
 * Admins can force refresh with `/refresh`.
 * The cache also **auto-refreshes at midnight**.
 
+## Proxy
+
+https://github.com/proxifly/free-proxy-list
+
 ## License
 
 This project is licensed under the Apache-2.0 License.
