@@ -7,6 +7,7 @@ from pyrogram import Client, filters, enums
 from uuid import uuid4
 from datetime import datetime, timedelta
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineQuery, Message
+from pyrogram.errors import MessageNotModified
 
 logger = logging.getLogger(__name__)
 log_format = (
@@ -153,18 +154,17 @@ async def matches_handler(client: Client, message: Message):
             await message.reply_text("⚠️ Usage: `/matches <league name>`", quote=True, parse_mode=enums.ParseMode.MARKDOWN)
             return
 
-        status_msg = await message.reply_text(f"🔍 Searching live matches for {query}...")
+        await message.reply_text(f"🔍 Searching live matches for {query}...")
         matches_data = get_cached_matches()
         found = False
         for sport, leagues in SPORTS_MAP.items():
             matches_by_league = matches_data.get(sport, {})
-
             for key, league_name in leagues.items():
                 if query in league_name.lower():
                     found = True
                     games = matches_by_league.get(league_name, [])
                     if not games:
-                        await status_msg.edit_text(f"❌ No live matches found for {league_name}")
+                        await message.reply_text(f"❌ No live matches found for {league_name}")
                     else:
                         text_lines = [f"📌 Live matches - {league_name}:"]
                         for match in games:
@@ -173,35 +173,13 @@ async def matches_handler(client: Client, message: Message):
                                 f"⏰ {match['hour']} - {icon} {match['teams']}\n🔗 {match['link']}"
                             )
                         text_lines.append(ADBLOCK_NOTE)
-                        await status_msg.edit_text("\n\n".join(text_lines))
+                        await message.reply_text("\n\n".join(text_lines))
         if not found:
-            await status_msg.edit_text("❌ League not found")
+            await message.reply_text("❌ League not found")
     except Exception as e:
         logger.error("Error occurred while processing /matches command: %s", e)
         traceback.print_exc()
-        if status_msg:
-            await status_msg.edit_text("❌ An error occurred while processing your request.")
-        else:
-            await message.reply_text("❌ An error occurred while processing your request.")
-
-
-@bot.on_message(filters.command("refresh"))
-async def refresh_handler(client: Client, message: Message):
-    """
-    Handle /refresh command.
-    """
-    try:
-        status_msg = await message.reply_text(f"🔄 Refreshing cache...")
-        if message.from_user.id != ADMIN_ID:
-            await status_msg.edit_text("⛔ You are not allowed to refresh cache.")
-            return
-        CACHE["date"] = None  # reset cache
-        get_cached_matches()  # force refresh
-        await status_msg.edit_text("✅ Cache has been refreshed for today.")
-    except Exception as e:
-        logger.error("Error occurred while processing /refresh command: %s", e)
-        traceback.print_exc()
-        await status_msg.edit_text("❌ An error occurred while refreshing the cache.")
+        await message.reply_text("❌ An error occurred while processing your request.")
 
 
 # --- /start and /help ---
@@ -234,7 +212,6 @@ async def help_handler(client: Client, message: Message):
                 cmd = key.replace("-", "")
                 commands_list.append(f"  • /{cmd} → {league_name}")
         commands_list.append("  • /matches <league name> → Search by name")
-        commands_list.append("  • /refresh (admin only) → Refresh cache")
 
         help_text = (
             "📖 **How to use this bot**\n\n"
