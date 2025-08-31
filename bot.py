@@ -4,7 +4,7 @@ import traceback
 from main import fetch_live_matches, load_proxies, SPORTS_MAP
 from pyrogram import Client, filters, enums
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent, InlineQuery, Message
 
 logger = logging.getLogger(__name__)
@@ -43,9 +43,17 @@ ADBLOCK_NOTE = (
 
 
 def get_cached_matches():
-    """Return cached matches, fetch if new day or cache empty"""
-    today = datetime.now().strftime("%Y-%m-%d")
-    if CACHE["date"] != today:
+    """Return cached matches, refresh if new day or older than 2h"""
+    now = datetime.now()
+    today = now.strftime("%Y-%m-%d")
+
+    should_refresh = (
+        CACHE["date"] != today or
+        CACHE["last_update"] is None or
+        (now - CACHE["last_update"]) >= timedelta(hours=2)
+    )
+
+    if should_refresh:
         logger.info("Cache is outdated or empty, fetching new matches...")
         CACHE["data"] = {}
         logger.info("Loading proxies...")
@@ -54,9 +62,13 @@ def get_cached_matches():
             _, matches_by_league = fetch_live_matches(
                 sport, proxies_list=proxies)
             CACHE["data"][sport] = matches_by_league
+
         CACHE["date"] = today
+        CACHE["last_update"] = now
     else:
-        logger.info("Using cached matches for %s", today)
+        logger.info("Using cached matches (last update: %s)",
+                    CACHE["last_update"])
+
     return CACHE["data"]
 
 
