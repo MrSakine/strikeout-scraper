@@ -101,7 +101,7 @@ def fetch_live_matches(sport="soccer", proxies_list=None, max_retries=10):
     # print(soup.prettify())
 
     today = datetime.now().strftime("%Y-%m-%d")
-    now = datetime.now()
+    # now = datetime.now()
     results = defaultdict(list)
 
     for a in soup.select("a.btn.btn-primary.text-orange"):  # only live matches
@@ -126,8 +126,6 @@ def fetch_live_matches(sport="soccer", proxies_list=None, max_retries=10):
         if time_span and time_span.has_attr("content"):
             try:
                 match_time = datetime.fromisoformat(time_span["content"])
-                if match_time < now:  # skip if match already started/past
-                    continue
                 hour = match_time.strftime("%H:%M")
             except ValueError:
                 hour = "??:??"
@@ -136,10 +134,6 @@ def fetch_live_matches(sport="soccer", proxies_list=None, max_retries=10):
 
         logger.info("Match title: %s", title)
         logger.info("Match league: %s", league)
-
-        # extract time
-        time_span = a.find("span", {"content": True})
-        hour = time_span.get_text(strip=True) if time_span else "??:??"
 
         link = "https://strikeout.im" + href if href else "pas encore de lien"
 

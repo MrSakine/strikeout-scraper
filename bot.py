@@ -55,7 +55,7 @@ async def refresh_matches_background():
             proxies = load_proxies("socks5")
             for sport in SPORTS_MAP:
                 _, matches_by_league = fetch_live_matches(
-                    sport, proxies_list=proxies)
+                    sport, proxies_list=proxies, max_retries=20)
                 CACHE["data"][sport] = matches_by_league
         except Exception as e:
             logger.exception("Failed to refresh cache: %s", e)
