@@ -27,6 +27,7 @@ bot = Client("strikeout_bot", api_id=API_ID,
 
 CACHE = {
     "date": None,
+    "last_update": None,
     "data": {}
 }
 
