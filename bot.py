@@ -41,18 +41,6 @@ ADBLOCK_NOTE = (
     "gighmmpiobklfepjocnamgkkbiglidom?hl=en-US&utm_source=ext_sidebar"
 )
 
-ADBLOCK_NOTE_INLINE = InlineQueryResultArticle(
-    id=str(uuid4()),
-    title="⚠️ Tip: Use an ad blocker",
-    description="Brave Browser, AdBlock for Chrome...",
-    input_message_content=InputTextMessageContent(
-        "\n⚠️ Consider using an adblocker for a better experience:\n"
-        "- Brave Browser: 🔗 https://brave.com/\n"
-        "- AdBlock for Chrome: 🔗 https://chrome.google.com/webstore/detail/adblock-%E2%80%94-block-ads-acros/"
-        "gighmmpiobklfepjocnamgkkbiglidom?hl=en-US&utm_source=ext_sidebar"
-    )
-)
-
 
 def get_cached_matches():
     """Return cached matches, refresh if new day or older than 2h"""
@@ -132,7 +120,17 @@ async def inline_handler(client: Client, query: InlineQuery):
                                     )
                                 )
                             )
-                        results.append(ADBLOCK_NOTE_INLINE)
+                        results.append(InlineQueryResultArticle(
+                            id=str(uuid4()),
+                            title="⚠️ Tip: Use an ad blocker",
+                            description="Brave Browser, AdBlock for Chrome...",
+                            input_message_content=InputTextMessageContent(
+                                "\n⚠️ Consider using an adblocker for a better experience:\n"
+                                "- Brave Browser: 🔗 https://brave.com/\n"
+                                "- AdBlock for Chrome: 🔗 https://chrome.google.com/webstore/detail/adblock-%E2%80%94-block-ads-acros/"
+                                "gighmmpiobklfepjocnamgkkbiglidom?hl=en-US&utm_source=ext_sidebar"
+                            )
+                        ))
 
         if not found:
             results.append(
