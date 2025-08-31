@@ -72,7 +72,7 @@ python bot.py
 
 ```mermaid
 flowchart TD
-    A[Telegram User] -->|Sends command /matches or inline query| B[Bot Handler]
+    A[Telegram User] -->|Sends command or inline query| B[Bot Handler]
     B --> C{Is cache available for today?}
     C -- Yes --> D[Return matches from cache]
     C -- No --> E[Fetch matches using fetch_live_matches()]
