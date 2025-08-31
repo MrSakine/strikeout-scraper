@@ -97,6 +97,8 @@ flowchart TD
 
 https://github.com/proxifly/free-proxy-list
 
+https://sockslist.us/
+
 ## License
 
 This project is licensed under the Apache-2.0 License.
