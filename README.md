@@ -74,14 +74,14 @@ python bot.py
 flowchart TD
     A[Telegram User] -->|Sends command or inline query| B[Bot Handler]
     B --> C{Is cache available for today?}
-    C -- Yes --> D[Return matches from cache]
-    C -- No --> E[Fetch matches using fetch_live_matches()]
-    E --> F[Store results in CACHE]
+    C -- Yes --> D["Return matches from cache"]
+    C -- No --> E["Fetch matches using fetch_live_matches"]
+    E --> F["Store results in CACHE"]
     F --> D
     D --> G[Send matches to user]
-    B --> H[/refresh command (Admin only)]
+    B --> H["Admin /refresh command"]
     H --> E
-    F -->|At midnight| I[Automatic daily refresh]
+    F -->|At midnight| I["Automatic daily refresh"]
 ```
 
 ### How it works:
