@@ -1,6 +1,7 @@
 import logging
 import json
 import traceback
+import asyncio
 from main import fetch_live_matches, load_proxies, SPORTS_MAP
 from pyrogram import Client, filters, enums
 from uuid import uuid4
@@ -42,51 +43,41 @@ ADBLOCK_NOTE = (
 )
 
 
+async def refresh_matches_background():
+    """Background task to refresh matches every 2 hours."""
+    while True:
+        try:
+            logger.info("Background refresh of matches...")
+            now = datetime.now()
+            CACHE["date"] = now.strftime("%Y-%m-%d")
+            CACHE["last_update"] = now
+            proxies = load_proxies("socks5")
+            for sport in SPORTS_MAP:
+                _, matches_by_league = fetch_live_matches(
+                    sport, proxies_list=proxies)
+                CACHE["data"][sport] = matches_by_league
+        except Exception as e:
+            logger.exception("Failed to refresh cache: %s", e)
+        await asyncio.sleep(2 * 60 * 60)  # 2h interval
+
+
 def get_cached_matches():
-    """Return cached matches, refresh if new day or older than 2h"""
-    now = datetime.now()
-    today = now.strftime("%Y-%m-%d")
-
-    should_refresh = (
-        CACHE["date"] != today or
-        CACHE["last_update"] is None or
-        (now - CACHE["last_update"]) >= timedelta(hours=2)
-    )
-
-    if should_refresh:
-        logger.info("Cache is outdated or empty, fetching new matches...")
-        CACHE["data"] = {}
-        logger.info("Loading proxies...")
-        proxies = load_proxies("socks5")
-        for sport in SPORTS_MAP:
-            _, matches_by_league = fetch_live_matches(
-                sport, proxies_list=proxies)
-            CACHE["data"][sport] = matches_by_league
-
-        CACHE["date"] = today
-        CACHE["last_update"] = now
-    else:
-        logger.info("Using cached matches (last update: %s)",
-                    CACHE["last_update"])
-
+    """Return cached matches instantly (non-blocking)"""
     return CACHE["data"]
 
 
 @bot.on_inline_query()
 async def inline_handler(client: Client, query: InlineQuery):
-    """
-    Handle inline queries from users.
-    """
     try:
         text = query.query.strip().lower()
-        results = []
-        matches_data = get_cached_matches()
-
         if not text:
             await query.answer([], switch_pm_text="Type a league name", switch_pm_parameter="start")
             return
 
+        matches_data = get_cached_matches()
+        results = []
         found = False
+
         for sport, leagues in SPORTS_MAP.items():
             matches_by_league = matches_data.get(sport, {})
 
@@ -142,7 +133,8 @@ async def inline_handler(client: Client, query: InlineQuery):
                 )
             )
 
-        await query.answer(results, cache_time=0)
+        await query.answer(results, cache_time=0, is_personal=True)
+
     except Exception as e:
         logger.error("Error occurred while processing inline query: %s", e)
         traceback.print_exc()
@@ -332,5 +324,16 @@ if __name__ == "__main__":
     logger.info("Starting bot...")
     logger.info("Registering league commands...")
     register_league_commands()
-    bot.run()
-    logger.info("Bot stopped.")
+    loop = asyncio.get_event_loop()
+    loop.create_task(refresh_matches_background())
+
+    async def main():
+        await bot.start()
+        logger.info("Bot is running. Press Ctrl+C to stop.")
+        await asyncio.Future()
+
+    try:
+        loop.run_until_complete(main())
+    finally:
+        loop.run_until_complete(bot.stop())
+        logger.info("Bot stopped.")
