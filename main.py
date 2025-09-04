@@ -38,7 +38,7 @@ SPORTS_MAP = {
         "champions-league": "Champions League",
         "carabao-cup": "Carabao Cup",
         "dfb-pokal": "DFB Pokal",
-        "world-cup: "World Cup",
+        "world-cup": "World Cup",
         "euros": "Euro"
     },
     "basketball": {
