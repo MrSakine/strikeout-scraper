@@ -86,7 +86,7 @@ async def inline_handler(client: Client, query: InlineQuery):
             for key, league_name in leagues.items():
                 if text in league_name.lower():
                     found = True
-                    games = matches_by_league.get(league_name, [])
+                    games = matches_by_league.get(key, [])
                     if not games:
                         results.append(
                             InlineQueryResultArticle(
@@ -162,7 +162,7 @@ async def matches_handler(client: Client, message: Message):
             for key, league_name in leagues.items():
                 if query in league_name.lower():
                     found = True
-                    games = matches_by_league.get(league_name, [])
+                    games = matches_by_league.get(key, [])
                     if not games:
                         await message.reply_text(f"❌ No live matches found for {league_name}")
                     else:
@@ -272,14 +272,16 @@ def register_league_commands():
                 client: Client,
                 message: Message,
                 sport: str = sport,
-                league_name: str = league_name
+                league_name: str = league_name,
+                league_key: str = key,
             ) -> None:
                 try:
                     """Handle individual league command using cached matches."""
                     status_msg = await message.reply_text(f"🔍 Searching live matches for {league_name}...")
                     matches_data = get_cached_matches()  # get cached matches
                     matches_by_league = matches_data.get(sport, {})
-                    games = matches_by_league.get(league_name, [])
+                    logger.info("Matches by league: %s", matches_by_league)
+                    games = matches_by_league.get(league_key, [])
                     if not games:
                         await status_msg.edit_text(f"❌ No live matches found for {league_name}")
                         return

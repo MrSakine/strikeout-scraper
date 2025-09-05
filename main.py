@@ -114,7 +114,7 @@ def fetch_live_matches(sport="soccer", proxies_list=None, max_retries=10):
         league = None
         for key, name in SPORTS_MAP[sport].items():
             if f"/{key}/" in href:
-                league = name
+                league = key
                 break
         if not league:
             continue
